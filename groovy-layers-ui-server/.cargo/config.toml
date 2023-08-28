@@ -1,0 +1,9 @@
+[env]
+
+RUST_LOG="groovy_layers_ui_server=debug"
+
+## -- ConfigMap
+SERVICE_WEB_FOLDER="web-folder/"
+
+## -- Secrets
+SERVICE_DB_URL = "postgres://postgres:rusty@localhost:5432"
