@@ -2,7 +2,8 @@
 
 mod error;
 mod store;
-pub mod task; //Will be order for the groovy layers
+pub mod order; //Will be order for the groovy layers
+pub mod user;
 
 pub use self::error::{Error, Result};
 use self::store::new_db_pool;

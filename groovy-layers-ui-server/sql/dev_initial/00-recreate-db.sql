@@ -3,8 +3,12 @@
 --  usename = 'app_user' OR datname = 'app_db';
 -- Drop the schema if it exists
 DROP SCHEMA IF EXISTS groovy_layers CASCADE;
-DROP TABLE IF EXISTS groovy_layers.user CASCADE;
-DROP TABLE IF EXISTS groovy_layers.task CASCADE;
 
 -- Create the Alpha schema
+DROP TABLE IF EXISTS groovy_layers.users CASCADE;
+DROP TABLE IF EXISTS groovy_layers.orders CASCADE;
+DROP TABLE IF EXISTS groovy_layers.print_stations CASCADE;
+DROP TABLE IF EXISTS groovy_layers.material_inventory CASCADE;
+
+
 CREATE SCHEMA groovy_layers;
