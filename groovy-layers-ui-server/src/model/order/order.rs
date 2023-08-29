@@ -2,14 +2,16 @@ use crate::ctx::Ctx;
 use crate::model::Error;
 use crate::model::ModelManager;
 use crate::model::Result;
+use crate::utils::format_time;
+use crate::utils::now_utc;
+use hmac::digest::typenum::Or;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use tracing::info;
 
-
-#[derive(Debug, Clone, Serialize)]
-pub enum Status {	
-	Pending, 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Status {
+	Pending,
 	Printing,
 	Failed,
 	QA,
@@ -17,11 +19,11 @@ pub enum Status {
 	Completed,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderStatus {
 	status: Status,
 	details: String,
-	error: String
+	error: String,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize)]
@@ -30,13 +32,24 @@ pub struct Order {
 	pub user_id: i64,
 	pub file_location: String,
 	pub print_job_file: String,
-	pub status: String
-
+	pub status: OrderStatus,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct OrderForCreate {
-	pub title: String,
+	pub user_id: i64,
+	pub file_location: String,
+	pub print_job_file: String,
+	pub status: OrderStatus,
+}
+
+#[derive(Deserialize, FromRow)]
+pub struct OrderForGet {
+	pub id: i64,
+	pub user_id: i64,
+	pub file_location: String,
+	pub print_job_file: String,
+	pub status: String,
 }
 
 #[derive(Deserialize)]
@@ -48,16 +61,38 @@ pub struct OrderForUpdate {
 pub struct OrderBmc;
 
 impl OrderBmc {
+	fn transform_get_order(order: OrderForGet) -> Order {
+		let order = Order {
+			id: order.id,
+			user_id: order.user_id,
+			file_location: order.file_location,
+			print_job_file: order.print_job_file,
+			status: serde_json::from_str(&order.status).unwrap(),
+		};
+
+		order
+	}
+
 	pub async fn create(
 		_ctx: &Ctx,
 		mm: &ModelManager,
 		order_c: OrderForCreate,
 	) -> Result<i64> {
+		println!("Order is: {:?}", order_c);
+
 		let db = mm.db();
 		let (result,) = sqlx::query_as::<_, (i64,)>(
-			"INSERT INTO groovy_layers.orders (title) values ($1) returning id",
+			"INSERT INTO groovy_layers.orders 
+			(user_id, file_location, print_job_file, status, last_update) 
+			values 
+			($1, $2, $3, $4, $5) 
+			returning id",
 		)
-		.bind(order_c.title)
+		.bind(order_c.user_id)
+		.bind(order_c.file_location)
+		.bind(order_c.print_job_file)		
+		.bind(serde_json::to_string(&order_c.status).unwrap())
+		.bind(format_time(now_utc()))
 		.fetch_one(db)
 		.await?;
 		info!("s");
@@ -67,12 +102,17 @@ impl OrderBmc {
 	pub async fn get(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Order> {
 		let db = mm.db();
 
-		let order: Order =
+		let order: OrderForGet =
 			sqlx::query_as("SELECT * FROM groovy_layers.orders WHERE id = $1")
 				.bind(id)
 				.fetch_optional(db)
 				.await?
-				.ok_or(Error::EntityNotFound { entity: "orders", id })?;
+				.ok_or(Error::EntityNotFound {
+					entity: "orders",
+					id,
+				})?;
+
+		let order = Self::transform_get_order(order);
 
 		Ok(order)
 	}
@@ -98,11 +138,12 @@ impl OrderBmc {
 	pub async fn list(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Vec<Order>> {
 		let db = mm.db();
 
-		let orders: Vec<Order> =
+		let orders: Vec<OrderForGet> =
 			sqlx::query_as("SELECT * FROM groovy_layers.orders order BY id")
 				.fetch_all(db)
 				.await?;
 
+		let orders = orders.into_iter().map(Self::transform_get_order).collect();
 		Ok(orders)
 	}
 }

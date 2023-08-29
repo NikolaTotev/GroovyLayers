@@ -2,7 +2,7 @@ use crate::crypt::{pwd, EncryptContent};
 use crate::ctx::Ctx;
 use crate::model::user::{UserBmc, UserForLogin};
 use crate::model::ModelManager;
-use crate::web::{self, Error, Result};
+use crate::web::{self, Error, Result, remove_token_cookie};
 use axum::extract::State;
 use axum::routing::post;
 use axum::{Json, Router};
@@ -49,8 +49,7 @@ async fn api_login_handler(
 	)
 	.map_err(|_| Error::LoginFailPwdNotMatching { user_id })?;
 
-	// FIXME: Implement real auth-token generation/signature.
-	cookies.add(Cookie::new(web::AUTH_TOKEN, "user-1.exp.sign"));
+	web::set_token_cookie(&cookies, &user.username, &user.token_salt.to_string())?;
 
 	// Create the success body.
 	let body = Json(json!({
@@ -67,3 +66,31 @@ struct LoginPayload {
 	username: String,
 	pwd: String,
 }
+
+// region:    --- Logoff
+async fn api_logoff_handler(
+	cookies: Cookies,
+	Json(payload): Json<LogoffPayload>,
+) -> Result<Json<Value>> {
+	debug!("{:<12} - api_logoff_handler", "HANDLER");
+	let should_logoff = payload.logoff;
+
+	if should_logoff {
+		remove_token_cookie(&cookies)?;
+	}
+
+	// Create the success body.
+	let body = Json(json!({
+		"result": {
+			"logged_off": should_logoff
+		}
+	}));
+
+	Ok(body)
+}
+
+#[derive(Debug, Deserialize)]
+struct LogoffPayload {
+	logoff: bool,
+}
+// endregion: --- Logoff
