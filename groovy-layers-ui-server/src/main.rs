@@ -10,6 +10,7 @@ mod log;
 mod model;
 mod utils;
 mod web;
+mod service_connections;
 
 //#[cfg(test)]
 pub mod _dev_utils;

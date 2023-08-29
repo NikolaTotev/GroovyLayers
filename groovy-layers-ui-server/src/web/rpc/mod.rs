@@ -107,7 +107,15 @@ async fn _rpc_handler(
 	debug!("{:<12} - _rpc_handler - method: {rpc_method}", "HANDLER");
 
 	let result_json: Value = match rpc_method.as_str() {
-		"create_task" => exec_rpc_fn!(create_task, ctx, mm, rpc_params),
+		"create_order" => exec_rpc_fn!(create_task, ctx, mm, rpc_params),
+        "update_order" => {todo!()},
+        "get_order" => {todo!()},
+        "get_user_oders" => {todo!()},
+        "cancel_order" => {todo!()},
+
+        "get_materials" => {todo!()},
+        "get_materials" => {todo!()},
+        
 		_ => return Err(Error::RpcMethodUnknown(rpc_method)),
 	};
 

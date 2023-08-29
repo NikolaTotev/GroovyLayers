@@ -4,6 +4,8 @@ mod error;
 mod store;
 pub mod order; //Will be order for the groovy layers
 pub mod user;
+pub mod material_inventory;
+
 
 pub use self::error::{Error, Result};
 use self::store::new_db_pool;
