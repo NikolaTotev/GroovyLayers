@@ -1,0 +1,7 @@
+{
+    "workbench.tree.indent": 16,
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.colorCustomizations": {
+        "tree.indentGuidesStroke": "#ffe866",
+    }
+}
