@@ -1,5 +1,6 @@
 use crate::ctx::Ctx;
-use crate::model::Error;
+use crate::model;
+use crate::model::order::Error;
 use crate::model::ModelManager;
 use crate::model::Result;
 use crate::utils::format_time;
@@ -52,9 +53,10 @@ pub struct OrderForGet {
 	pub status: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct OrderForUpdate {
-	pub title: String,
+	pub id: i64,
+	pub status: Status,
 }
 
 //order Bmc
@@ -78,10 +80,10 @@ impl OrderBmc {
 		mm: &ModelManager,
 		order_c: OrderForCreate,
 	) -> Result<i64> {
-		println!("Order is: {:?}", order_c);
+		info!("->> create_order {:?}", order_c);
 
 		let db = mm.db();
-		let (result,) = sqlx::query_as::<_, (i64,)>(
+		let (id,) = sqlx::query_as::<_, (i64,)>(
 			"INSERT INTO groovy_layers.orders 
 			(user_id, file_location, print_job_file, status, last_update) 
 			values 
@@ -90,24 +92,51 @@ impl OrderBmc {
 		)
 		.bind(order_c.user_id)
 		.bind(order_c.file_location)
-		.bind(order_c.print_job_file)		
+		.bind(order_c.print_job_file)
 		.bind(serde_json::to_string(&order_c.status).unwrap())
 		.bind(format_time(now_utc()))
 		.fetch_one(db)
 		.await?;
-		info!("s");
-		Ok(result)
+
+		Ok(id)
+	}
+
+	pub async fn update_status(
+		_ctx: &Ctx,
+		mm: &ModelManager,
+		order_u: OrderForUpdate,
+	) -> Result<i64> {
+		info!("->> create_order {:?}", order_u);
+
+		let db = mm.db();
+		let serialized_status = serde_json::to_string(&order_u.status)
+			.map_err(|err| Error::SerdeJson(err.to_string()))?;
+		let (id,) = sqlx::query_as::<_, (i64,)>(
+			"UPDATE groovy_layers.orders 
+			SET status = $2, 
+			last_update = $3) 
+			WHERE id = $1		
+			",
+		)
+		.bind(order_u.id)
+		.bind(serialized_status)
+		.bind(format_time(now_utc()))
+		.fetch_one(db)
+		.await?;
+
+		Ok(id)
 	}
 
 	pub async fn get(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Order> {
 		let db = mm.db();
+		info!("->> get_order {:?}", id);
 
 		let order: OrderForGet =
 			sqlx::query_as("SELECT * FROM groovy_layers.orders WHERE id = $1")
 				.bind(id)
 				.fetch_optional(db)
 				.await?
-				.ok_or(Error::EntityNotFound {
+				.ok_or(model::Error::EntityNotFound {
 					entity: "orders",
 					id,
 				})?;
@@ -119,7 +148,7 @@ impl OrderBmc {
 
 	pub async fn delete(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
 		let db = mm.db();
-
+		info!("->> delete_order {:?}", id);
 		let count = sqlx::query("DELETE * FROM groovy_layers.orders WHERE id = $1")
 			.bind(id)
 			.execute(db)
@@ -127,7 +156,7 @@ impl OrderBmc {
 			.rows_affected();
 
 		if count == 0 {
-			return Err(Error::EntityNotFound {
+			return Err(model::Error::EntityNotFound {
 				entity: "order",
 				id: id,
 			});
@@ -135,11 +164,16 @@ impl OrderBmc {
 		Ok(())
 	}
 
-	pub async fn list(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Vec<Order>> {
+	pub async fn list(
+		_ctx: &Ctx,
+		mm: &ModelManager,
+		user_id: i64,
+	) -> Result<Vec<Order>> {
 		let db = mm.db();
-
+		info!("->> list_orders {:?}", user_id);
 		let orders: Vec<OrderForGet> =
-			sqlx::query_as("SELECT * FROM groovy_layers.orders order BY id")
+			sqlx::query_as("SELECT * FROM groovy_layers.orders WHERE user_id = $1")
+				.bind(user_id)
 				.fetch_all(db)
 				.await?;
 
@@ -151,7 +185,7 @@ impl OrderBmc {
 #[cfg(test)]
 mod tests {
 	#![allow(unused)]
-	use crate::_dev_utils;
+	use crate::{_dev_utils, model};
 
 	use super::*;
 	use anyhow::Result;
@@ -161,21 +195,34 @@ mod tests {
 	async fn test_create_ok() -> Result<()> {
 		let mm = _dev_utils::init_test().await;
 		let ctx = Ctx::root_ctx();
-		let fx_title = "test_create_ok title";
+
+		let fx_status = OrderStatus {
+			status: Status::Printing,
+			details: "details".to_string(),
+			error: "error".to_string(),
+		};
+		let fx_user_id = 999;
+		let fx_file_location = "test_create_ok title".to_string();
+		let fx_print_location = "test_create_ok title".to_string();
 
 		let order_c = OrderForCreate {
-			title: fx_title.to_string(),
+			user_id: fx_user_id,
+			file_location: fx_file_location,
+			print_job_file: fx_print_location,
+			status: fx_status,
 		};
 
 		let id = OrderBmc::create(&ctx, &mm, order_c).await?;
 
-		let (title,): (String,) =
-			sqlx::query_as("SELECT title from groovy_layers.orders where id = $1")
+		let (user_id,): (i64,) =
+			sqlx::query_as("SELECT user_id from groovy_layers.orders where id = $1")
 				.bind(id)
 				.fetch_one(mm.db())
 				.await?;
-		assert_eq!(title, fx_title);
 
+		assert_eq!(user_id, fx_user_id);
+
+		//Cleanup
 		let count = sqlx::query("DELETE FROM groovy_layers.orders WHERE id = $1")
 			.bind(id)
 			.execute(mm.db())
@@ -196,7 +243,7 @@ mod tests {
 		assert!(
 			matches!(
 				res,
-				Err(Error::EntityNotFound {
+				Err(model::Error::EntityNotFound {
 					entity: "orders",
 					id: 100
 				})
@@ -204,6 +251,34 @@ mod tests {
 			"EntityNotFound not matching"
 		);
 
+		Ok(())
+	}
+
+	#[serial]
+	#[tokio::test]
+	async fn test_get_found() -> Result<()> {
+		let mm = _dev_utils::init_test().await;
+		let ctx = Ctx::root_ctx();
+		let fx_status = OrderStatus {
+			status: Status::Printing,
+			details: "details".to_string(),
+			error: "error".to_string(),
+		};
+		let fx_user_id = 999;
+		let fx_file_location = "test_create_ok title".to_string();
+		let fx_print_location = "test_create_ok title".to_string();
+
+		let order_c = OrderForCreate {
+			user_id: fx_user_id,
+			file_location: fx_file_location,
+			print_job_file: fx_print_location,
+			status: fx_status,
+		};
+
+		let id = OrderBmc::create(&ctx, &mm, order_c).await?;
+		let res = OrderBmc::get(&ctx, &mm, id).await?;
+
+		assert_eq!(res.user_id, fx_user_id);
 		Ok(())
 	}
 

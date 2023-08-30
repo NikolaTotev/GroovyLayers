@@ -13,7 +13,8 @@ pub enum Error {
 	Store(store::Error),
 	Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
 	Order(order::Error),
-	Crypt(crypt::Error)
+	Crypt(crypt::Error),
+	SerdeJson(String)
 }
 
 // region:    --- Error Boilerplate
@@ -25,6 +26,7 @@ impl core::fmt::Display for Error {
 		write!(fmt, "{self:?}")
 	}
 }
+
 
 impl From<store::Error> for Error {
 	fn from(value: store::Error) -> Self {

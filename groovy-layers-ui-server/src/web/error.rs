@@ -32,6 +32,7 @@ impl From<model::Error> for Error {
 		Self::Model(value)
 	}
 }
+
 impl From<crypt::Error> for Error {
 	fn from(value: crypt::Error) -> Self {
 		Self::Crypt(value)
