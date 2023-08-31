@@ -15,8 +15,8 @@ mod web;
 //#[cfg(test)]
 pub mod _dev_utils;
 pub use self::error::{Error, Result};
-use axum::http::Method;
-use axum::http::header::CONTENT_TYPE;
+use axum::http::{Method, HeaderValue};
+use axum::http::header::{CONTENT_TYPE, COOKIE};
 use axum::response::Html;
 use axum::routing::get;
 pub use config::config;
@@ -54,8 +54,9 @@ async fn main() -> Result<()> {
 
 	let cors = CorsLayer::new()
 		.allow_methods([Method::GET, Method::POST])
-		.allow_headers([CONTENT_TYPE])
-		.allow_origin(Any);
+		.allow_headers([CONTENT_TYPE, COOKIE])
+		.allow_credentials(true)
+		.allow_origin("http://127.0.0.1:5173".parse::<HeaderValue>().unwrap(),);
 
 	let routes_all = Router::new()
 		.merge(routes_login::routes(mm.clone()))

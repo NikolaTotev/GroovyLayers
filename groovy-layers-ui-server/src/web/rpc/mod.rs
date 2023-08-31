@@ -13,7 +13,7 @@ use tracing::debug;
 use crate::{
 	ctx::Ctx,
 	model::{order::order::OrderForCreate, ModelManager},
-	web::{rpc::task_rpc::create_task, Error, Result},
+	web::{rpc::task_rpc::create_order, Error, Result},
 };
 
 mod task_rpc;
@@ -105,9 +105,9 @@ async fn _rpc_handler(
 	} = rpc_req;
 
 	debug!("{:<12} - _rpc_handler - method: {rpc_method}", "HANDLER");
-
+    println!("{:}", rpc_params.clone().unwrap());
 	let result_json: Value = match rpc_method.as_str() {
-		"create_order" => exec_rpc_fn!(create_task, ctx, mm, rpc_params),
+		"create_order" => exec_rpc_fn!(create_order, ctx, mm, rpc_params),
         "update_order" => {todo!()},
         "get_order" => {todo!()},
         "get_user_oders" => {todo!()},

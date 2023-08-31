@@ -15,6 +15,7 @@ pub struct Material {
 	pub id: i64,
 	pub name: String,
 	pub description: String,
+	pub image_url: String,
 	pub material_type: String,
 	pub amount_kg: f64,
 	pub price_kg: f64,
@@ -24,6 +25,7 @@ pub struct Material {
 pub struct MaterialForCreate {
 	pub name: String,
 	pub description: String,
+	pub image_url: String,
 	pub material_type: String,
 	pub amount_kg: f64,
 	pub price_kg: f64,
@@ -33,6 +35,7 @@ pub struct MaterialForCreate {
 pub struct MaterialForUpdate {
 	pub name: String,
 	pub description: String,
+	pub image_url: String,
 	pub material_type: String,
 	pub amount_kg: f64,
 	pub price_kg: f64,
@@ -51,13 +54,14 @@ impl MaterialBmc {
 		let db = mm.db();
 		let (id,) = sqlx::query_as::<_, (i64,)>(
 			"INSERT INTO groovy_layers.material_inventory 
-			(name, description, amount_kg, material_type, price_kg) 
+			(name, description,image_url, amount_kg, material_type, price_kg) 
 			values 
-			($1, $2, $3, $4, $5) 
+			($1, $2, $3, $4, $5, $6) 
 			returning id",
 		)
 		.bind(material_c.name)
 		.bind(material_c.description)
+		.bind(material_c.image_url)
 		.bind(material_c.amount_kg)
 		.bind(material_c.material_type)
 		.bind(material_c.price_kg)

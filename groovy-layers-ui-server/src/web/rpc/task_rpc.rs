@@ -9,7 +9,7 @@ use crate::model::order::*;
 
 use super::ParamsForCreate;
 
-pub async fn create_task(
+pub async fn create_order(
 	ctx: Ctx,
 	mm: ModelManager,
 	params: ParamsForCreate<OrderForCreate>,

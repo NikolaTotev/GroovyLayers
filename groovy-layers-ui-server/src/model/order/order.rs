@@ -45,7 +45,6 @@ pub struct OrderForCreate {
 	pub quality_setting: i64,
 	pub file_location: String,
 	pub print_job_file: String,
-	pub status: OrderStatus,
 }
 
 #[derive(Deserialize, FromRow)]
@@ -90,12 +89,18 @@ impl OrderBmc {
 	) -> Result<i64> {
 		info!("->> create_order {:?}", order_c);
 
+		let initial_status: OrderStatus = OrderStatus {
+			status: Status::Pending,
+			details: "".to_string(),
+			error: "".to_string(),
+		};
+
 		let db = mm.db();
 		let (id,) = sqlx::query_as::<_, (i64,)>(
 			"INSERT INTO groovy_layers.orders 
-			(user_id, material_id, quality_setting file_location, print_job_file, status, last_update) 
+			(user_id, material_id, quality_setting, file_location, print_job_file, status, last_update) 
 			values 
-			($1, $2, $3, $4, $5) 
+			($1, $2, $3, $4, $5, $6, $7) 
 			returning id",
 		)
 		.bind(order_c.user_id)
@@ -103,7 +108,7 @@ impl OrderBmc {
 		.bind(order_c.quality_setting)
 		.bind(order_c.file_location)
 		.bind(order_c.print_job_file)
-		.bind(serde_json::to_string(&order_c.status).unwrap())
+		.bind(serde_json::to_string(&initial_status).unwrap())
 		.bind(format_time(now_utc()))
 		.fetch_one(db)
 		.await?;
@@ -219,11 +224,10 @@ mod tests {
 
 		let order_c = OrderForCreate {
 			user_id: fx_user_id,
-			material_id:fx_material_id,
+			material_id: fx_material_id,
 			quality_setting: fx_quality_setting,
 			file_location: fx_file_location,
 			print_job_file: fx_print_location,
-			status: fx_status,
 		};
 
 		let id = OrderBmc::create(&ctx, &mm, order_c).await?;
@@ -286,11 +290,10 @@ mod tests {
 
 		let order_c = OrderForCreate {
 			user_id: fx_user_id,
-			material_id:fx_material_id,
+			material_id: fx_material_id,
 			quality_setting: fx_quality_setting,
 			file_location: fx_file_location,
 			print_job_file: fx_print_location,
-			status: fx_status,
 		};
 
 		let id = OrderBmc::create(&ctx, &mm, order_c).await?;

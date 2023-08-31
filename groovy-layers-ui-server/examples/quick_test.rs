@@ -29,13 +29,7 @@ async fn main() -> Result<()> {
 				"data": {
 					"user_id": 1000,
 					"file_location": "file_location",
-					"print_job_file": "print_job_file",
-					"status": {
-						"status" : "Pending",
-						"details": "details",
-						"error": "error",
-					}
-
+					"print_job_file": "print_job_file",					
 				}
 			}
 		}),
