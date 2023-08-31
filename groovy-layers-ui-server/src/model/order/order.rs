@@ -31,6 +31,8 @@ pub struct OrderStatus {
 pub struct Order {
 	pub id: i64,
 	pub user_id: i64,
+	pub material_id: i64,
+	pub quality_setting: i64,
 	pub file_location: String,
 	pub print_job_file: String,
 	pub status: OrderStatus,
@@ -39,6 +41,8 @@ pub struct Order {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderForCreate {
 	pub user_id: i64,
+	pub material_id: i64,
+	pub quality_setting: i64,
 	pub file_location: String,
 	pub print_job_file: String,
 	pub status: OrderStatus,
@@ -48,6 +52,8 @@ pub struct OrderForCreate {
 pub struct OrderForGet {
 	pub id: i64,
 	pub user_id: i64,
+	pub material_id: i64,
+	pub quality_setting: i64,
 	pub file_location: String,
 	pub print_job_file: String,
 	pub status: String,
@@ -67,6 +73,8 @@ impl OrderBmc {
 		let order = Order {
 			id: order.id,
 			user_id: order.user_id,
+			material_id: order.material_id,
+			quality_setting: order.quality_setting,
 			file_location: order.file_location,
 			print_job_file: order.print_job_file,
 			status: serde_json::from_str(&order.status).unwrap(),
@@ -85,12 +93,14 @@ impl OrderBmc {
 		let db = mm.db();
 		let (id,) = sqlx::query_as::<_, (i64,)>(
 			"INSERT INTO groovy_layers.orders 
-			(user_id, file_location, print_job_file, status, last_update) 
+			(user_id, material_id, quality_setting file_location, print_job_file, status, last_update) 
 			values 
 			($1, $2, $3, $4, $5) 
 			returning id",
 		)
 		.bind(order_c.user_id)
+		.bind(order_c.material_id)
+		.bind(order_c.quality_setting)
 		.bind(order_c.file_location)
 		.bind(order_c.print_job_file)
 		.bind(serde_json::to_string(&order_c.status).unwrap())
@@ -114,7 +124,7 @@ impl OrderBmc {
 		let (id,) = sqlx::query_as::<_, (i64,)>(
 			"UPDATE groovy_layers.orders 
 			SET status = $2, 
-			last_update = $3) 
+			last_update = $3 
 			WHERE id = $1		
 			",
 		)
@@ -202,11 +212,15 @@ mod tests {
 			error: "error".to_string(),
 		};
 		let fx_user_id = 999;
+		let fx_material_id = 999;
+		let fx_quality_setting = 999;
 		let fx_file_location = "test_create_ok title".to_string();
 		let fx_print_location = "test_create_ok title".to_string();
 
 		let order_c = OrderForCreate {
 			user_id: fx_user_id,
+			material_id:fx_material_id,
+			quality_setting: fx_quality_setting,
 			file_location: fx_file_location,
 			print_job_file: fx_print_location,
 			status: fx_status,
@@ -265,11 +279,15 @@ mod tests {
 			error: "error".to_string(),
 		};
 		let fx_user_id = 999;
+		let fx_material_id = 999;
+		let fx_quality_setting = 999;
 		let fx_file_location = "test_create_ok title".to_string();
 		let fx_print_location = "test_create_ok title".to_string();
 
 		let order_c = OrderForCreate {
 			user_id: fx_user_id,
+			material_id:fx_material_id,
+			quality_setting: fx_quality_setting,
 			file_location: fx_file_location,
 			print_job_file: fx_print_location,
 			status: fx_status,

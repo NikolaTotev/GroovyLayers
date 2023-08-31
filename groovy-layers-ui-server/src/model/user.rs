@@ -61,7 +61,7 @@ impl UserBmc {
 	{
 		let db = mm.db();
 
-		let order: E =
+		let user: E =
 			sqlx::query_as("SELECT * FROM groovy_layers.users WHERE id = $1")
 				.bind(id)
 				.fetch_optional(db)
@@ -71,7 +71,7 @@ impl UserBmc {
 					id,
 				})?;
 
-		Ok(order)
+		Ok(user)
 	}
 
 	pub async fn first_by_username<E>(

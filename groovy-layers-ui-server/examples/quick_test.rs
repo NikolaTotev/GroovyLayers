@@ -9,6 +9,7 @@ async fn main() -> Result<()> {
 
 	//hc.do_get("/index.html").await?.print().await?;
 
+	println!(">>>> Login");
 	let req_login = hc.do_post(
 		"/api/login",
 		json!({
@@ -23,7 +24,7 @@ async fn main() -> Result<()> {
 		"/api/rpc",
 		json!({
 			"id": 1,
-			"method": "create_task",
+			"method": "create_order",
 			"params": {
 				"data": {
 					"user_id": 1000,

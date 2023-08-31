@@ -2,7 +2,7 @@ use crate::crypt::{pwd, EncryptContent};
 use crate::ctx::Ctx;
 use crate::model::user::{UserBmc, UserForLogin};
 use crate::model::ModelManager;
-use crate::web::{self, Error, Result, remove_token_cookie};
+use crate::web::{self, remove_token_cookie, Error, Result};
 use axum::extract::State;
 use axum::routing::post;
 use axum::{Json, Router};
@@ -14,6 +14,7 @@ use tracing::debug;
 pub fn routes(mm: ModelManager) -> Router {
 	Router::new()
 		.route("/api/login", post(api_login_handler))
+		.route("/api/logout", post(api_logoff_handler))
 		.with_state(mm)
 }
 
@@ -36,8 +37,8 @@ async fn api_login_handler(
 		.ok_or(Error::LoginFailUsernameNotFound)?;
 	let user_id = user.id;
 
-	let Some(pwd) = user.pwd else{
-		return Err(Error::LoginFailUserHasNoPwd{user_id});
+	let Some(pwd) = user.pwd else {
+		return Err(Error::LoginFailUserHasNoPwd { user_id });
 	};
 
 	pwd::validate_pwd(
