@@ -1,7 +1,10 @@
 <script lang="ts">
     import "../app.css";
+    import LoginGuard from "../components/LoginGuard.svelte";
 </script>
 
-<div class="min-h-screen fles flex-col">
-    <slot />
-</div>
+<LoginGuard>
+    <div class="min-h-screen fles flex-col">
+        <slot />
+    </div>
+</LoginGuard>
