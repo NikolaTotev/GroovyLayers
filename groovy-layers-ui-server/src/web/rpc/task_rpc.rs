@@ -1,4 +1,3 @@
-use std::sync::Arc;
 
 use crate::ctx::Ctx;
 use crate::model::ModelManager;
@@ -7,7 +6,8 @@ use crate::web::Result;
 use crate::model::order::*;
 
 
-use super::ParamsForCreate;
+use crate::web::rpc::{ParamsForCreate, ParamsForUpdate, ParamsIded};
+
 
 pub async fn create_order(
 	ctx: Ctx,
@@ -19,4 +19,17 @@ pub async fn create_order(
     let task = OrderBmc::get(&ctx, &mm, id).await?;
 
 	Ok(task)
+}
+
+pub async fn get_orders(
+	ctx: Ctx,
+	mm: ModelManager,
+	params: ParamsIded,
+) -> Result<Vec<Order>> {
+	let ParamsIded { id } = params;
+
+	let orders = OrderBmc::list(&ctx, &mm, id).await?;
+	
+
+	Ok(orders)
 }

@@ -120,13 +120,11 @@ impl MaterialBmc {
 	pub async fn list(
 		_ctx: &Ctx,
 		mm: &ModelManager,
-		user_id: i64,
 	) -> Result<Vec<Material>> {
 		let db = mm.db();
 		info!("->> list_materials");
 		let materials: Vec<Material> =
 			sqlx::query_as("SELECT * FROM groovy_layers.material_inventory")
-				.bind(user_id)
 				.fetch_all(db)
 				.await?;
 

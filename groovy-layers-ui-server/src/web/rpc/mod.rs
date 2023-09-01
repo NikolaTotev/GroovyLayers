@@ -13,10 +13,11 @@ use tracing::debug;
 use crate::{
 	ctx::Ctx,
 	model::{order::order::OrderForCreate, ModelManager},
-	web::{rpc::task_rpc::create_order, Error, Result},
+	web::{rpc::task_rpc::create_order,rpc::material_rpc::list_materials, Error, Result},
 };
 
 mod task_rpc;
+mod material_rpc;
 
 //RPC Types
 
@@ -39,7 +40,7 @@ pub struct ParamsForUpdate<D> {
 }
 
 #[derive(Deserialize)]
-pub struct ParamsForIded {
+pub struct ParamsIded {
 	id: i64,
 }
 
@@ -105,7 +106,6 @@ async fn _rpc_handler(
 	} = rpc_req;
 
 	debug!("{:<12} - _rpc_handler - method: {rpc_method}", "HANDLER");
-    println!("{:}", rpc_params.clone().unwrap());
 	let result_json: Value = match rpc_method.as_str() {
 		"create_order" => exec_rpc_fn!(create_order, ctx, mm, rpc_params),
         "update_order" => {todo!()},
@@ -113,7 +113,7 @@ async fn _rpc_handler(
         "get_user_oders" => {todo!()},
         "cancel_order" => {todo!()},
 
-        "get_materials" => {todo!()},
+        "get_materials" => exec_rpc_fn!(list_materials, ctx, mm),
         "get_materials" => {todo!()},
         
 		_ => return Err(Error::RpcMethodUnknown(rpc_method)),
