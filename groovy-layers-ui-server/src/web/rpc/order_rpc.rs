@@ -1,7 +1,7 @@
 
 use crate::ctx::Ctx;
 use crate::model::ModelManager;
-use crate::model::order::order::{Order, OrderBmc, OrderForCreate};
+use crate::model::order::order::{Order, OrderBmc, OrderForCreate, OrderForUpdate};
 use crate::web::Result;
 use crate::model::order::*;
 
@@ -29,7 +29,18 @@ pub async fn get_orders(
 	let ParamsIded { id } = params;
 
 	let orders = OrderBmc::list(&ctx, &mm, id).await?;
-	
 
 	Ok(orders)
+}
+
+
+pub async fn update_order(
+	ctx: Ctx,
+	mm: ModelManager,
+	params: ParamsForUpdate<OrderForUpdate>,
+) -> Result<i64> {
+    let ParamsForUpdate {id, data} = params;
+    let id = OrderBmc::update_status(&ctx, &mm, data).await?;    
+
+	Ok(id)
 }

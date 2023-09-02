@@ -55,7 +55,8 @@ async fn api_login_handler(
 	// Create the success body.
 	let body = Json(json!({
 		"result": {
-			"success": true
+			"success": true,
+			"user_id": user.id
 		}
 	}));
 
@@ -68,7 +69,6 @@ struct LoginPayload {
 	pwd: String,
 }
 
-// region:    --- Logoff
 async fn api_logoff_handler(
 	cookies: Cookies,
 	Json(payload): Json<LogoffPayload>,
@@ -94,4 +94,3 @@ async fn api_logoff_handler(
 struct LogoffPayload {
 	logoff: bool,
 }
-// endregion: --- Logoff

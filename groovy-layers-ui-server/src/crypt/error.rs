@@ -4,13 +4,13 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, Serialize)]
 pub enum Error {
-	// -- Key
+	// Key
 	KeyFailHmac,
 
-	// -- Pwd
+	// Pwd
 	PwdNotMatching,
 
-	// -- Token
+	// Token
 	TokenInvalidFormat,
 	TokenCannotDecodeIdent,
 	TokenCannotDecodeExp,
@@ -19,7 +19,6 @@ pub enum Error {
 	TokenExpired,
 }
 
-// region:    --- Error Boilerplate
 impl core::fmt::Display for Error {
 	fn fmt(
 		&self,
@@ -30,4 +29,3 @@ impl core::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-// endregion: --- Error Boilerplate

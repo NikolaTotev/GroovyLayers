@@ -1,5 +1,3 @@
-// region:    --- Modules
-
 mod error;
 
 pub use self::error::{Error, Result};
@@ -7,9 +5,6 @@ pub use self::error::{Error, Result};
 use time::format_description::well_known::Rfc3339;
 use time::{Duration, OffsetDateTime};
 
-// endregion: --- Modules
-
-// region:    --- Time
 pub fn now_utc() -> OffsetDateTime {
 	OffsetDateTime::now_utc()
 }
@@ -27,9 +22,7 @@ pub fn parse_utc(moment: &str) -> Result<OffsetDateTime> {
 	OffsetDateTime::parse(moment, &Rfc3339)
 		.map_err(|_| Error::DateFailParse(moment.to_string()))
 }
-// endregion: --- Time
 
-// region:    --- Base64
 pub fn b64u_encode(content: &str) -> String {
 	base64_url::encode(content)
 }
@@ -42,4 +35,3 @@ pub fn b64u_decode(b64u: &str) -> Result<String> {
 
 	Ok(decoded_string)
 }
-// endregion: --- Base64

@@ -42,11 +42,11 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	}
 
-	// -- Init model layer.
+	// Init model layer.
 	let mm = ModelManager::new().await?;
 	let ctx = Ctx::root_ctx();
 
-	// -- Set demo1 pwd
+	// Set demo1 pwd
 	let demo1_user: User = UserBmc::first_by_username(&ctx, &mm, "demo1")
 		.await?
 		.unwrap();

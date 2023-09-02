@@ -7,7 +7,6 @@ pub enum Error {
 	CtxCannotNewRootCtx,
 }
 
-// region:    --- Error Boilerplate
 impl core::fmt::Display for Error {
 	fn fmt(
 		&self,
@@ -18,4 +17,3 @@ impl core::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-// endregion: --- Error Boilerplate

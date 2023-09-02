@@ -13,13 +13,13 @@ pub enum Error {
 	RpcMissingParams { rpc_method: String },
 	RpcFailJsonParams { rpc_method: String },
 
-	// -- Login
+	//Login
 	LoginFail,
 	LoginFailUsernameNotFound,
 	LoginFailUserHasNoPwd { user_id: i64 },
 	LoginFailPwdNotMatching { user_id: i64 },
 
-	// -- CtxExtError
+	//CtxExtError
 	CtxExt(web::mw_auth::CtxExtError),
 	Model(model::Error),
 	Crypt(crypt::Error),
@@ -45,7 +45,7 @@ impl From<serde_json::Error> for Error {
 	}
 }
 
-// region:    --- Axum IntoResponse
+// region:     - Axum IntoResponse
 impl IntoResponse for Error {
 	fn into_response(self) -> Response {
 		debug!("->> {:<12} - model::Error {self:?}", "INTO_RES");
@@ -59,9 +59,9 @@ impl IntoResponse for Error {
 		response
 	}
 }
-// endregion: --- Axum IntoResponse
+// endregion:  - Axum IntoResponse
 
-// region:    --- Error Boilerplate
+// region:     - Error Boilerplate
 impl core::fmt::Display for Error {
 	fn fmt(
 		&self,
@@ -72,9 +72,9 @@ impl core::fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-// endregion: --- Error Boilerplate
+// endregion:  - Error Boilerplate
 
-// region:    --- Client Error
+// region:     - Client Error
 
 /// From the root error to the http status code and ClientError
 impl Error {
@@ -83,16 +83,16 @@ impl Error {
 
 		#[allow(unreachable_patterns)]
 		match self {
-			// -- Login
+			//   Login
 			LoginFailUsernameNotFound
 			| LoginFailUserHasNoPwd { .. }
 			| LoginFailPwdNotMatching { .. } => {
 				(StatusCode::FORBIDDEN, ClientError::LOGIN_FAIL)
 			}
-			// -- Auth
+			//   Auth
 			CtxExt(_) => (StatusCode::FORBIDDEN, ClientError::NO_AUTH),
 
-			// -- Fallback.
+			//   Fallback.
 			_ => (
 				StatusCode::INTERNAL_SERVER_ERROR,
 				ClientError::SERVICE_ERROR,
@@ -108,4 +108,4 @@ pub enum ClientError {
 	NO_AUTH,
 	SERVICE_ERROR,
 }
-// endregion: --- Client Error
+// endregion:  - Client Error

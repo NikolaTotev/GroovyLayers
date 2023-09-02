@@ -74,6 +74,11 @@ impl UserBmc {
 		Ok(user)
 	}
 
+	pub async fn get_user(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<User> {
+		let user: User = Self::get(ctx, mm, id).await?;
+		Ok(user)
+	}
+
 	pub async fn first_by_username<E>(
 		ctx: &Ctx,
 		mm: &ModelManager,
@@ -121,7 +126,6 @@ impl UserBmc {
 	}
 }
 
-// region:    --- Tests
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -132,20 +136,19 @@ mod tests {
 	#[serial]
 	#[tokio::test]
 	async fn test_first_ok_demo1() -> Result<()> {
-		// -- Setup & Fixtures
+		//Setup & Fixtures
 		let mm = _dev_utils::init_test().await;
 		let ctx = Ctx::root_ctx();
 		let fx_username = "demo1";
 
-		// -- Exec
+		//Exec
 		let user: User = UserBmc::first_by_username(&ctx, &mm, fx_username)
 			.await?
 			.context("Should have user 'demo1'")?;
 
-		// -- Check
+		//Check
 		assert_eq!(user.username, fx_username);
 
 		Ok(())
 	}
 }
-// endregion: --- Tests

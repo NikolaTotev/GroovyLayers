@@ -56,14 +56,14 @@ struct RequestLogLine {
 	uuid: String,      // uuid string formatted
 	timestamp: String, // (should be iso8601)
 
-	// -- User and context attributes.
+	//User and context attributes.
 	user_id: Option<i64>,
 
-	// -- http request attributes.
+	//http request attributes.
 	http_path: String,
 	http_method: String,
 
-	// -- Errors attributes.
+	//Errors attributes.
 	client_error_type: Option<String>,
 	error_type: Option<String>,
 	error_data: Option<Value>,

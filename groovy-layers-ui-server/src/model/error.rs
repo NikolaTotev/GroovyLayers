@@ -17,7 +17,7 @@ pub enum Error {
 	SerdeJson(String)
 }
 
-// region:    --- Error Boilerplate
+// region:     - Error Boilerplate
 impl core::fmt::Display for Error {
 	fn fmt(
 		&self,
@@ -53,4 +53,4 @@ impl From<crypt::Error> for Error {
 }
 
 impl std::error::Error for Error {}
-// endregion: --- Error Boilerplate
+// endregion:  - Error Boilerplate

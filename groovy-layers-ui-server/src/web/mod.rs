@@ -1,4 +1,3 @@
-// region:    --- Modules
 
 mod error;
 pub mod mw_auth;
@@ -15,7 +14,6 @@ use crate::crypt::token::generate_web_token;
 pub use self::error::ClientError;
 pub use self::error::{Error, Result};
 
-// endregion: --- Modules
 
 pub const AUTH_TOKEN: &str = "auth-token";
 

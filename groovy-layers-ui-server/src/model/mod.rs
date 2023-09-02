@@ -1,17 +1,12 @@
-// region:    --- Modules
-
 mod error;
-mod store;
-pub mod order; //Will be order for the groovy layers
-pub mod user;
 pub mod material;
-
+pub mod order; //Will be order for the groovy layers
+mod store;
+pub mod user;
 
 pub use self::error::{Error, Result};
 use self::store::new_db_pool;
 use crate::model::store::Db;
-
-// endregion: --- Modules
 
 #[derive(Clone)]
 pub struct ModelManager {
@@ -27,8 +22,8 @@ impl ModelManager {
 		Ok(ModelManager { db })
 	}
 
-    ///Returns the sqlx db pool reference.
-    ///(Only for the model layer)
+	///Returns the sqlx db pool reference.
+	///(Only for the model layer)
 	pub(in crate::model) fn db(&self) -> &Db {
 		&self.db
 	}

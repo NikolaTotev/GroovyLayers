@@ -51,35 +51,34 @@ pub async fn mw_ctx_resolve<B>(
 }
 
 async fn _ctx_resolve(mm: State<ModelManager>, cookies: &Cookies) -> CtxExtResult {
-	// -- Get Token String
+	//   Get Token String
 	let token = cookies
 		.get(AUTH_TOKEN)
 		.map(|c| c.value().to_string())
 		.ok_or(CtxExtError::TokenNotInCookie)?;
 
-	// -- Parse Token
+	//   Parse Token
 	let token: Token = token.parse().map_err(|_| CtxExtError::TokenWrongFormat)?;
 
-	// -- Get UserForAuth
+	//   Get UserForAuth
 	let user: UserForAuth =
 		UserBmc::first_by_username(&Ctx::root_ctx(), &mm, &token.ident)
 			.await
 			.map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))?
 			.ok_or(CtxExtError::UserNotFound)?;
 
-	// -- Validate Token
+	//   Validate Token
 	validate_web_token(&token, &user.token_salt.to_string())
 		.map_err(|_| CtxExtError::FailValidate)?;
 
-	// -- Update Token
+	//   Update Token
 	set_token_cookie(cookies, &user.username, &user.token_salt.to_string())
 		.map_err(|_| CtxExtError::CannotSetTokenCookie)?;
 
-	// -- Create CtxExtResult
+	//   Create CtxExtResult
 	Ctx::new(user.id).map_err(|ex| CtxExtError::CtxCreateFail(ex.to_string()))
 }
 
-// region:    --- Ctx Extractor
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 	type Rejection = Error;
@@ -95,9 +94,7 @@ impl<S: Send + Sync> FromRequestParts<S> for Ctx {
 			.map_err(Error::CtxExt)
 	}
 }
-// endregion: --- Ctx Extractor
 
-// region:    --- Ctx Extractor Result/Error
 type CtxExtResult = core::result::Result<Ctx, CtxExtError>;
 
 #[derive(Clone, Serialize, Debug)]
@@ -113,4 +110,3 @@ pub enum CtxExtError {
 	CtxNotInRequestExt,
 	CtxCreateFail(String),
 }
-// endregion: --- Ctx Extractor Result/Error

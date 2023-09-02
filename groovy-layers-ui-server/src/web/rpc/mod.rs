@@ -13,11 +13,18 @@ use tracing::debug;
 use crate::{
 	ctx::Ctx,
 	model::{order::order::OrderForCreate, ModelManager},
-	web::{rpc::task_rpc::create_order,rpc::material_rpc::list_materials, Error, Result},
+	web::{
+		rpc::order_rpc::{create_order, update_order},
+		rpc::{
+			material_rpc::list_materials, order_rpc::get_orders, user_rpc::get_user,
+		},
+		Error, Result,
+	},
 };
 
-mod task_rpc;
 mod material_rpc;
+mod order_rpc;
+mod user_rpc;
 
 //RPC Types
 
@@ -62,13 +69,13 @@ async fn rpc_handler(
 	ctx: Ctx,
 	Json(rpc_req): Json<RpcRequest>,
 ) -> Response {
-	// -- Create the RPC Info to be set to the response.extensions.
+	//   Create the RPC Info to be set to the response.extensions.
 	let rpc_info = RpcInfo {
 		id: rpc_req.id.clone(),
 		method: rpc_req.method.clone(),
 	};
 
-	// -- Exec & Store RpcInfo in response.
+	//   Exec & Store RpcInfo in response.
 	let mut res = _rpc_handler(ctx, mm, rpc_req).await.into_response();
 	res.extensions_mut().insert(rpc_info);
 
@@ -108,14 +115,12 @@ async fn _rpc_handler(
 	debug!("{:<12} - _rpc_handler - method: {rpc_method}", "HANDLER");
 	let result_json: Value = match rpc_method.as_str() {
 		"create_order" => exec_rpc_fn!(create_order, ctx, mm, rpc_params),
-        "update_order" => {todo!()},
-        "get_order" => {todo!()},
-        "get_user_oders" => {todo!()},
-        "cancel_order" => {todo!()},
+		"get_orders" => exec_rpc_fn!(get_orders, ctx, mm, rpc_params),
+		"update_order" => exec_rpc_fn!(update_order, ctx, mm, rpc_params),
 
-        "get_materials" => exec_rpc_fn!(list_materials, ctx, mm),
-        "get_materials" => {todo!()},
-        
+		"get_materials" => exec_rpc_fn!(list_materials, ctx, mm),
+		"get_user" => exec_rpc_fn!(get_user, ctx, mm, rpc_params),
+
 		_ => return Err(Error::RpcMethodUnknown(rpc_method)),
 	};
 
