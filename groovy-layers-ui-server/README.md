@@ -14,9 +14,6 @@ cargo watch -q -c -w examples/ -x "run --example quick_dev"
 
 ```sh
 cargo watch -q -c -x "test -- --nocapture"
-
-# Specific test with filter.
-cargo watch -q -c -x "test model::task::tests::test_create -- --nocapture"
 ```
 
 ## Dev
@@ -29,10 +26,3 @@ cargo run
 cargo run --example quick_dev
 ```
 
-## Unit Test
-
-```sh
-cargo test -- --nocapture
-
-cargo watch -q -c -x test model::task::tests::test_create -- --nocapture
-```
